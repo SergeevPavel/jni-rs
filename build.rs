@@ -23,7 +23,7 @@ const EXPECTED_JVM_FILENAME: &str = "jvm.dll";
 #[cfg(target_os = "linux")]
 const EXPECTED_JVM_FILENAME: &str = "libjvm.so";
 #[cfg(target_os = "macos")]
-const EXPECTED_JVM_FILENAME: &str = "libjvm.dylib";
+const EXPECTED_JVM_FILENAME: &str = "libjli.dylib";
 
 fn main() {
     if cfg!(feature = "invocation") {
@@ -36,7 +36,7 @@ fn main() {
         };
 
         let libjvm_path =
-            find_libjvm(&java_home).expect("Failed to find libjvm.so. Check JAVA_HOME");
+            find_libjvm(&java_home).expect(format!("Failed to find {}. Check JAVA_HOME", EXPECTED_JVM_FILENAME).as_str());
 
         println!("cargo:rustc-link-search=native={}", libjvm_path.display());
 
@@ -48,7 +48,11 @@ fn main() {
         }
 
         println!("cargo:rerun-if-env-changed=JAVA_HOME");
-        println!("cargo:rustc-link-lib=dylib=jvm");
+        if cfg!(target_os = "macos") {
+            println!("cargo:rustc-link-lib=dylib=jli");
+        } else {
+            println!("cargo:rustc-link-lib=dylib=jvm");
+        }
     }
 }
 
